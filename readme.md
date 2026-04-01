@@ -91,6 +91,7 @@ Win7/8 (< 9600):  isIso=0x28  NT=0x38  LM=0x48  SHA1=0x18
 ```
 inline-execute /path/to/out/ksl_lsa.o
 ```
+<img width="530" height="626" alt="image" src="https://github.com/user-attachments/assets/6d3d9f9f-b93c-4d1d-b482-3b1eedc2811b" />
 
 ---
 
