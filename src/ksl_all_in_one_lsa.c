@@ -1,0 +1,8 @@
+#include "../include/common_bof.h"
+#include "bof_crt.c"
+#include "ksl_driver_bof.c"
+#include "ksl_memory_bof.c"
+#include "ksl_crypto_bof.c"
+#include "ksl_lsa_bof.c"
+#include "ksl_wdigest_bof.c"
+#include "ksl_lsa_go.c"
