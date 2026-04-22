@@ -74,17 +74,18 @@ Extracts credentials from lsass memory without calling `OpenProcess` on lsass or
 
 **What it extracts:**
 - MSV1_0 NT hashes (build-aware offsets)
-- WDigest cleartext passwords (when enabled)
+- WDigest cleartext passwords (when enabled, multi-signature support for Win11 24H2)
 - AES-256 / 3DES LSA encryption keys
 - Credential Guard detection (`isIso` flag)
 
-**Supported builds:** Windows 7/8/10/11, Server 2016–2022
+**Supported builds:** Windows 7/8/10/11 (including 24H2 Build 26200+), Server 2016–2022
 
 **PrimaryCredential offsets:**
 ```
-Win11 (>= 22000): isIso=0x40  NT=0x46  LM=0x56  SHA1=0x66
-Win10 (>= 9600):  isIso=0x28  NT=0x4a  LM=0x5a  SHA1=0x36
-Win7/8 (< 9600):  isIso=0x28  NT=0x38  LM=0x48  SHA1=0x18
+Win11 24H2 (>= 26100): isIso=0x28  NT=0x46  LM=0x56  SHA1=0x66
+Win11       (>= 22000): isIso=0x40  NT=0x46  LM=0x56  SHA1=0x66
+Win10       (>= 9600):  isIso=0x28  NT=0x4a  LM=0x5a  SHA1=0x36
+Win7/8      (<  9600):  isIso=0x28  NT=0x38  LM=0x48  SHA1=0x18
 ```
 
 **Usage:**
